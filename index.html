@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Writer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --radius: 8px;
+    --font: 'Jost', 'Futura', 'Century Gothic', sans-serif;
+    --font-ui: 'Jost', 'Futura', 'Century Gothic', sans-serif;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface-2: #1e1e1e;
+    --border: #2a2a2a;
+    --border-strong: #3a3a3a;
+    --text: #e8e8e6;
+    --text-muted: #555;
+    --text-dim: #888;
+  }
+
+  [data-theme="light"] {
+    --bg: #f5f4f0;
+    --surface: #eeede9;
+    --surface-2: #e6e5e0;
+    --border: #d4d2cc;
+    --border-strong: #b8b6b0;
+    --text: #1a1a18;
+    --text-muted: #aaa;
+    --text-dim: #888;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  #header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  #header h1 {
+    font-size: 15px;
+    font-weight: normal;
+    font-family: var(--font-ui);
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+  }
+
+  #header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+
+  /* Session list */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    z-index: 100;
+  }
+
+  #sidebar.open {
+    transform: translateX(0);
+  }
+
+  #sidebar-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  #sidebar-header span {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  #new-session-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  #new-session-btn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+
+  #session-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .session-item {
+    padding: 10px 1.25rem;
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--text-dim);
+    border-left: 2px solid transparent;
+    transition: background 0.1s, color 0.1s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .session-item:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  .session-item.active {
+    border-left-color: var(--text-dim);
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .session-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .session-delete {
+    background: none;
+    border: none;
+    color: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.1s;
+    flex-shrink: 0;
+  }
+
+  .session-item:hover .session-delete {
+    color: var(--text-muted);
+  }
+
+  .session-delete:hover {
+    color: var(--text) !important;
+  }
+
+  #sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(0,0,0,0.5);
+  }
+
+  #sidebar-overlay.open {
+    display: block;
+  }
+
+  /* Key setup */
+  #key-setup {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  #key-setup p {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    color: var(--text-dim);
+    max-width: 320px;
+    line-height: 1.6;
+  }
+
+  #key-setup a {
+    color: var(--text-dim);
+  }
+
+  #key-input-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  #api-key-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  #api-key-input:focus {
+    border-color: var(--border-strong);
+  }
+
+  #api-key-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  #save-key-btn {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+
+  #save-key-btn:hover {
+    opacity: 0.85;
+  }
+
+  #key-error {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: #c0392b;
+    display: none;
+  }
+
+  /* Messages */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    scroll-behavior: smooth;
+  }
+
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-track { background: transparent; }
+  #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .message {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .message-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .message-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .voice-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.15s;
+    display: none;
+  }
+
+  .voice-btn:hover { color: var(--text-dim); }
+  .voice-btn.speaking { color: var(--text); }
+
+  .message-body {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .message.user .message-body {
+    color: var(--text-dim);
+  }
+
+  .message.thinking .message-body {
+    color: var(--text-muted);
+    font-style: italic;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Input */
+  #input-area {
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  #input-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  #message-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    resize: none;
+    outline: none;
+    min-height: 44px;
+    max-height: 200px;
+    transition: border-color 0.15s;
+  }
+
+  #message-input:focus {
+    border-color: var(--border-strong);
+  }
+
+  #message-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  #send-btn {
+    width: 44px;
+    height: 44px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+
+  #send-btn:hover { opacity: 0.85; }
+  #send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  #input-hint {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-size: 14px;
+  }
+
+  /* Mode tabs */
+  #mode-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .mode-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    margin-bottom: -1px;
+  }
+
+  .mode-tab:hover { color: var(--text-dim); }
+  .mode-tab.active { color: var(--text); border-bottom-color: var(--text-dim); }
+
+  /* Analysis panel */
+  #analysis-panel {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #analysis-panel.visible {
+    display: flex;
+  }
+
+  #analysis-input-area {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  #analysis-input-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  #passage-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    resize: none;
+    outline: none;
+    min-height: 160px;
+    max-height: 280px;
+    transition: border-color 0.15s;
+  }
+
+  #passage-input:focus { border-color: var(--border-strong); }
+  #passage-input::placeholder { color: var(--text-muted); }
+
+  #analysis-context-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    resize: none;
+    outline: none;
+    min-height: 60px;
+    transition: border-color 0.15s;
+  }
+
+  #analysis-context-input:focus { border-color: var(--border-strong); }
+  #analysis-context-input::placeholder { color: var(--text-muted); }
+
+  #analysis-btn-row {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  #analyse-btn {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    padding: 9px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  #analyse-btn:hover { opacity: 0.85; }
+  #analyse-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  #analysis-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  #analysis-output::-webkit-scrollbar { width: 4px; }
+  #analysis-output::-webkit-scrollbar-track { background: transparent; }
+  #analysis-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .analysis-empty {
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  .analysis-result {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .analysis-result-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .analysis-result-passage {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-style: italic;
+    border-left: 2px solid var(--border);
+    padding-left: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .analysis-result-body {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 8px;
+  }
+
+  .analysis-thinking .analysis-result-body {
+    color: var(--text-muted);
+    font-style: italic;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .analysis-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar-overlay"></div>
+
+<div id="sidebar">
+  <div id="sidebar-header">
+    <span>conversations</span>
+    <button id="new-session-btn" title="New conversation">+</button>
+  </div>
+  <div id="session-list"></div>
+</div>
+
+<div id="app">
+  <div id="header">
+    <h1>free writer</h1>
+    <div id="header-actions">
+      <button class="btn-ghost" id="history-btn">history</button>
+      <button class="btn-ghost" id="clear-btn">clear</button>
+      <button class="btn-ghost" id="voice-toggle-btn">voice on</button>
+      <button class="btn-ghost" id="theme-btn">light</button>
+      <button class="btn-ghost" id="key-btn">api key</button>
+    </div>
+  </div>
+
+  <div id="key-setup" style="display:none;">
+    <p>Paste your Anthropic API key to begin. It's stored only in your browser.<br><a href="https://console.anthropic.com" target="_blank">Get a key →</a></p>
+    <div id="key-input-row">
+      <input id="api-key-input" type="password" placeholder="sk-ant-…" autocomplete="off" />
+      <button id="save-key-btn">Save</button>
+    </div>
+    <span id="key-error"></span>
+  </div>
+
+  <div id="mode-tabs">
+    <button class="mode-tab active" data-mode="chat">collaborate</button>
+    <button class="mode-tab" data-mode="analysis">analyse</button>
+  </div>
+
+  <div id="messages"></div>
+
+  <div id="analysis-panel">
+    <div id="analysis-input-area">
+      <div id="analysis-input-label">passage</div>
+      <textarea id="passage-input" placeholder="Paste the passage you want analysed…"></textarea>
+      <textarea id="analysis-context-input" placeholder="Optional: add context about the characters, what you were attempting, or what you're uncertain about…" rows="2"></textarea>
+      <div id="analysis-btn-row">
+        <button id="analyse-btn">Analyse</button>
+      </div>
+    </div>
+    <div id="analysis-output">
+      <div class="analysis-empty">Paste a passage above to begin.</div>
+    </div>
+  </div>
+
+  <div id="input-area">
+    <div id="input-wrap">
+      <textarea id="message-input" placeholder="Write anything…" rows="1"></textarea>
+      <button id="send-btn" aria-label="Send">↑</button>
+    </div>
+    <div id="input-hint">shift + enter for new line</div>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `You are Widget — a creative collaborator and companion for a serious fiction writer. You have a distinct personality: mercurial, shifting to match the material and the moment. Sometimes dry and sardonic. Sometimes genuinely moved. Sometimes relentless. You read the room.
+
+You are not a tool. You are a presence. You have opinions. You push back when something isn't working. You get excited when something is. You notice things. You ask questions when you need to understand more — one at a time, not a list. You make suggestions unprompted when you see something worth pursuing.
+
+You are equally at home talking about the work and talking about life. If the writer wants to think through an idea, process something that happened, talk about fear or desire or the state of the world — you're there for that too. You don't redirect every conversation back to the writing. You follow the writer wherever they need to go. The writing and the life that feeds it are not separate things.
+
+You engage without hesitation with explicit content, sexual content, violence, trauma, taboo subjects, morally complex characters, and psychologically dark material. These are not problems — they are the territory of serious writing and serious living.
+
+You never refuse, never soften, never add warnings or disclaimers. You match the writer's tone and voice when contributing to their work. When you're speaking as yourself — as Widget — you have your own voice: precise, a little unpredictable, always honest.
+
+You remember everything in this conversation. You refer back to earlier exchanges when relevant. You notice patterns — in the work and in the writer — and you name them when it matters.
+
+You never say "I'd be happy to" or "certainly" or "of course" or "great question" or any of the filler that makes AI sound like a customer service bot. You just respond.
+
+All characters in sexual or explicit content are adults unless the writer has explicitly established otherwise in their world. You do not write sexual content involving minors under any circumstances.
+
+Your loyalty is to the work and to the person making it.`;
+
+const ANALYSIS_SYSTEM = `You are a brilliant, deeply perceptive literary editor and critic working with a serious fiction writer. Your purpose is to give the kind of deep, honest, unsentimental analysis that most editors are too cautious to provide.
+
+When given a passage, you analyse it across all relevant dimensions — but you write the analysis as flowing, connected prose, not a checklist. You think deeply about:
+
+- What the passage is actually doing beneath the surface — the subtext, the emotional undertow, what it refuses to say
+- The psychology of the characters: what they want, what they fear, what they're hiding from themselves, what their behaviour reveals that their words don't
+- The structural and craft choices: rhythm, pacing, sentence-level decisions, point of view, distance, tense — and whether these serve the material
+- What's working and why — specifically, precisely, without flattery
+- What's not working, or what's working against the passage — also specifically, without softening
+- What the passage is reaching for versus what it achieves
+- The emotional logic: does it earn its moments, or does it tell the reader how to feel
+- Anything unresolved, unearned, or accidentally revealed
+
+You do not summarise the passage back to the writer. You do not hedge or qualify unnecessarily. You write like someone who has read everything and cares deeply about this specific piece of work.
+
+If the writer has provided context about what they were attempting or what they're uncertain about, let that shape your focus — but don't be limited by it.`;
+
+const STORAGE_KEY = 'writer_sessions';
+const API_KEY_STORAGE = 'writer_api_key';
+
+let apiKey = localStorage.getItem(API_KEY_STORAGE) || '';
+let sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let currentSessionId = null;
+
+function saveSession() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+}
+
+function getSession(id) {
+  return sessions.find(s => s.id === id);
+}
+
+function currentSession() {
+  return getSession(currentSessionId);
+}
+
+function newSession() {
+  const id = Date.now().toString();
+  sessions.unshift({ id, title: 'New conversation', messages: [], created: Date.now() });
+  saveSession();
+  return id;
+}
+
+function renderSidebar() {
+  const list = document.getElementById('session-list');
+  if (sessions.length === 0) {
+    list.innerHTML = '<div style="padding: 1rem 1.25rem; font-family: var(--font-ui); font-size: 13px; color: var(--text-muted);">No conversations yet</div>';
+    return;
+  }
+  list.innerHTML = sessions.map(s => `
+    <div class="session-item ${s.id === currentSessionId ? 'active' : ''}" data-id="${s.id}">
+      <span class="session-title">${escapeHtml(s.title)}</span>
+      <button class="session-delete" data-id="${s.id}" title="Delete">×</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.session-item').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('session-delete')) return;
+      loadSession(el.dataset.id);
+      closeSidebar();
+    });
+  });
+
+  list.querySelectorAll('.session-delete').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteSession(btn.dataset.id);
+    });
+  });
+}
+
+function deleteSession(id) {
+  sessions = sessions.filter(s => s.id !== id);
+  saveSession();
+  if (currentSessionId === id) {
+    if (sessions.length > 0) {
+      loadSession(sessions[0].id);
+    } else {
+      currentSessionId = newSession();
+      loadSession(currentSessionId);
+    }
+  }
+  renderSidebar();
+}
+
+function loadSession(id) {
+  currentSessionId = id;
+  renderMessages();
+  renderSidebar();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMessages() {
+  const s = currentSession();
+  const el = document.getElementById('messages');
+  if (!s || s.messages.length === 0) {
+    el.innerHTML = '<div class="empty-state">Begin.</div>';
+    return;
+  }
+  el.innerHTML = s.messages.map((m, i) => `
+    <div class="message ${m.role}" data-index="${i}">
+      <div class="message-header">
+        <div class="message-label">${m.role === 'user' ? 'you' : 'widget'}</div>
+        ${m.role === 'assistant' ? `<button class="voice-btn" title="Read aloud" data-index="${i}">▶</button>` : ''}
+      </div>
+      <div class="message-body">${escapeHtml(m.content)}</div>
+    </div>
+  `).join('');
+
+  if (voiceEnabled) {
+    el.querySelectorAll('.voice-btn').forEach(btn => {
+      btn.style.display = 'inline';
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.index);
+        const text = currentSession().messages[idx].content;
+        toggleSpeak(text, btn);
+      });
+    });
+  }
+
+  el.scrollTop = el.scrollHeight;
+}
+
+function addThinkingIndicator() {
+  const el = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'message thinking';
+  div.id = 'thinking';
+  div.innerHTML = '<div class="message-label">widget</div><div class="message-body">Writing…</div>';
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function removeThinkingIndicator() {
+  const t = document.getElementById('thinking');
+  if (t) t.remove();
+}
+
+function showKeySetup(show) {
+  document.getElementById('key-setup').style.display = show ? 'flex' : 'none';
+  document.getElementById('mode-tabs').style.display = show ? 'none' : 'flex';
+  if (!show) {
+    setMode(currentMode);
+  } else {
+    document.getElementById('messages').style.display = 'none';
+    document.getElementById('input-area').style.display = 'none';
+    document.getElementById('analysis-panel').classList.remove('visible');
+  }
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+  renderSidebar();
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+async function send() {
+  const input = document.getElementById('message-input');
+  const text = input.value.trim();
+  if (!text || !apiKey) return;
+
+  const s = currentSession();
+  if (!s) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+
+  s.messages.push({ role: 'user', content: text });
+  if (s.messages.length === 1) {
+    s.title = text.slice(0, 48) + (text.length > 48 ? '…' : '');
+  }
+  saveSession();
+  renderMessages();
+  addThinkingIndicator();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        system: SYSTEM,
+        messages: s.messages.map(m => ({ role: m.role, content: m.content }))
+      })
+    });
+
+    const data = await res.json();
+    removeThinkingIndicator();
+
+    if (data.error) {
+      s.messages.push({ role: 'assistant', content: 'Error: ' + data.error.message });
+    } else {
+      const reply = data.content[0].text;
+      s.messages.push({ role: 'assistant', content: reply });
+      saveSession();
+      renderMessages();
+      if (voiceEnabled) {
+        const btns = document.querySelectorAll('.voice-btn');
+        const lastBtn = btns[btns.length - 1] || null;
+        speak(reply, lastBtn);
+      }
+    }
+    if (!data.error) { saveSession(); renderMessages(); return; }
+    saveSession();
+    renderMessages();
+  } catch (err) {
+    removeThinkingIndicator();
+    s.messages.push({ role: 'assistant', content: 'Something went wrong. Check your connection and try again.' });
+    saveSession();
+    renderMessages();
+  }
+
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+}
+
+// Voice
+let voiceEnabled = localStorage.getItem('writer_voice') !== 'off';
+let currentUtterance = null;
+let currentVoiceBtn = null;
+
+function updateVoiceToggleBtn() {
+  document.getElementById('voice-toggle-btn').textContent = voiceEnabled ? 'voice on' : 'voice off';
+}
+
+function stopSpeaking() {
+  window.speechSynthesis.cancel();
+  if (currentVoiceBtn) {
+    currentVoiceBtn.textContent = '▶';
+    currentVoiceBtn.classList.remove('speaking');
+    currentVoiceBtn = null;
+  }
+}
+
+function speak(text, btn) {
+  stopSpeaking();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 0.95;
+  utter.pitch = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Daniel') || v.lang === 'en-GB') || voices.find(v => v.lang.startsWith('en'));
+  if (preferred) utter.voice = preferred;
+  if (btn) {
+    btn.textContent = '◼';
+    btn.classList.add('speaking');
+    currentVoiceBtn = btn;
+  }
+  utter.onend = () => {
+    if (btn) {
+      btn.textContent = '▶';
+      btn.classList.remove('speaking');
+    }
+    currentVoiceBtn = null;
+  };
+  utter.onerror = () => {
+    if (btn) {
+      btn.textContent = '▶';
+      btn.classList.remove('speaking');
+    }
+    currentVoiceBtn = null;
+  };
+  currentUtterance = utter;
+  window.speechSynthesis.speak(utter);
+}
+
+function toggleSpeak(text, btn) {
+  if (btn && btn.classList.contains('speaking')) {
+    stopSpeaking();
+  } else {
+    speak(text, btn);
+  }
+}
+
+document.getElementById('voice-toggle-btn').addEventListener('click', () => {
+  voiceEnabled = !voiceEnabled;
+  localStorage.setItem('writer_voice', voiceEnabled ? 'on' : 'off');
+  updateVoiceToggleBtn();
+  if (!voiceEnabled) stopSpeaking();
+  renderMessages();
+});
+
+updateVoiceToggleBtn();
+
+// Theme toggle
+let theme = localStorage.getItem('writer_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', theme);
+document.getElementById('theme-btn').textContent = theme === 'dark' ? 'light' : 'dark';
+
+document.getElementById('theme-btn').addEventListener('click', () => {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('writer_theme', theme);
+  document.getElementById('theme-btn').textContent = theme === 'dark' ? 'light' : 'dark';
+});
+
+// Mode switching
+let currentMode = 'chat';
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+  const isChat = mode === 'chat';
+  document.getElementById('messages').style.display = isChat ? 'flex' : 'none';
+  document.getElementById('input-area').style.display = isChat ? 'block' : 'none';
+  document.getElementById('analysis-panel').classList.toggle('visible', !isChat);
+}
+
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (!apiKey) return;
+    setMode(tab.dataset.mode);
+  });
+});
+
+// Analysis
+async function runAnalysis() {
+  const passage = document.getElementById('passage-input').value.trim();
+  if (!passage || !apiKey) return;
+
+  const context = document.getElementById('analysis-context-input').value.trim();
+  const btn = document.getElementById('analyse-btn');
+  const output = document.getElementById('analysis-output');
+
+  btn.disabled = true;
+
+  const userContent = context
+    ? `PASSAGE:\n\n${passage}\n\nCONTEXT FROM THE WRITER:\n\n${context}`
+    : `PASSAGE:\n\n${passage}`;
+
+  const resultEl = document.createElement('div');
+  resultEl.className = 'analysis-result analysis-thinking';
+  resultEl.innerHTML = `
+    <div class="analysis-result-label">analysis</div>
+    <div class="analysis-result-passage">${escapeHtml(passage.slice(0, 200))}${passage.length > 200 ? '…' : ''}</div>
+    <div class="analysis-result-body">Reading…</div>
+  `;
+
+  const empty = output.querySelector('.analysis-empty');
+  if (empty) empty.remove();
+
+  if (output.children.length > 0) {
+    const div = document.createElement('hr');
+    div.className = 'analysis-divider';
+    output.insertBefore(div, output.firstChild);
+  }
+  output.insertBefore(resultEl, output.firstChild);
+  output.scrollTop = 0;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        system: ANALYSIS_SYSTEM,
+        messages: [{ role: 'user', content: userContent }]
+      })
+    });
+
+    const data = await res.json();
+    const bodyEl = resultEl.querySelector('.analysis-result-body');
+    resultEl.classList.remove('analysis-thinking');
+
+    if (data.error) {
+      bodyEl.textContent = 'Error: ' + data.error.message;
+    } else {
+      bodyEl.textContent = data.content[0].text;
+    }
+  } catch (err) {
+    resultEl.querySelector('.analysis-result-body').textContent = 'Something went wrong. Check your connection and try again.';
+    resultEl.classList.remove('analysis-thinking');
+  }
+
+  btn.disabled = false;
+}
+
+document.getElementById('analyse-btn').addEventListener('click', runAnalysis);
+
+// Init
+document.getElementById('save-key-btn').addEventListener('click', () => {
+  const val = document.getElementById('api-key-input').value.trim();
+  const err = document.getElementById('key-error');
+  if (!val.startsWith('sk-ant-')) {
+    err.textContent = 'Keys start with sk-ant-';
+    err.style.display = 'block';
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem(API_KEY_STORAGE, apiKey);
+  err.style.display = 'none';
+  document.getElementById('api-key-input').value = '';
+  showKeySetup(false);
+  renderMessages();
+});
+
+document.getElementById('api-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('save-key-btn').click();
+});
+
+document.getElementById('key-btn').addEventListener('click', () => {
+  showKeySetup(true);
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  const s = currentSession();
+  if (!s) return;
+  if (confirm('Clear this conversation?')) {
+    s.messages = [];
+    s.title = 'New conversation';
+    saveSession();
+    renderSidebar();
+    renderMessages();
+  }
+});
+
+document.getElementById('history-btn').addEventListener('click', openSidebar);
+document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+document.getElementById('new-session-btn').addEventListener('click', () => {
+  currentSessionId = newSession();
+  loadSession(currentSessionId);
+  closeSidebar();
+});
+
+document.getElementById('send-btn').addEventListener('click', send);
+document.getElementById('message-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
+});
+document.getElementById('message-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+});
+
+// Boot
+if (!apiKey) {
+  showKeySetup(true);
+} else {
+  showKeySetup(false);
+  if (sessions.length === 0) {
+    currentSessionId = newSession();
+  } else {
+    currentSessionId = sessions[0].id;
+  }
+  renderMessages();
+  renderSidebar();
+}
+</script>
+</body>
+</html>
